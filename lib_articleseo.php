@@ -8,7 +8,6 @@ class Lib_ArticleSEO
 
   public function result($params) {
     $content          = $params['content'];
-    $content_full     = $params['content_full'];
     $title            = $params['title'];
     $keyphrase        = $params['keyphrase'];
     $list_keyphrase   = $params['list_keyphrase'];
@@ -17,41 +16,170 @@ class Lib_ArticleSEO
 
     $score = $this->fleschKincaidGrade($content);
     return [
-      'readability' => [
-        'score'           => round($score, 2),                                                        //* Score
-        'score_ket'       => $this->readabilityDescription('flesch_kincaid', $score)['keterangan'],   //* Score - Keterangan
-        'score_info'      => $this->readabilityDescription('flesch_kincaid', $score)['informasi'],    //* Score - Informasi
-        'word_count'      => $this->wordCount($content),                                              //* Word count
-        'reading_time'    => $this->readingTime($content),                                            //* Reading time
-        'keyword_list'    => $this->extractKeywords($content, $title)                                 //* Keyword list
-      ],
       'insight'     => [
-        'outbound_links'  => $this->analyzeOutboundLinks($content_full, $this->domain),               //* Outbound links
-        'internal_links'  => $this->analyzeInternalLinks($content_full, $this->domain),               //* Internal links
-        'images'          => $this->analyzeImages($content_full),                                     //* Images
-        'text_length'     => $this->analyzeWordCount($content),                                       //* Text length
-        'seo_title_width' => $this->analyzePageTitle($title),                                         //* SEO title width
+        'score'                  => round($score, 2),                                                          //* Score
+        'score_ket'              => $this->readabilityDescription('flesch_kincaid', $score)['keterangan'],     //* Score - Keterangan
+        'score_info'             => $this->readabilityDescription('flesch_kincaid', $score)['informasi'],      //* Score - Informasi
+        'word_count'             => $this->wordCount($content),                                                //* Word count
+        'reading_time'           => $this->readingTime($content),                                              //* Reading time
+        'keyword_list'           => $this->extractKeywords($content, $title)                                   //* Keyword list
       ],
       'keyphrase'   => [
-        'introduction'    => $this->analyzeFocusKeyphraseInIntroduction($content, $keyphrase),        //* Keyphrase in introduction
-        'density'         => $this->analyzeKeyphraseDensity($content, $keyphrase),                    //* Keyphrase density
-        'distribution'    => $this->analyzeKeyphraseDistribution($content, $keyphrase),               //* Keyphrase distribution
-        'length'          => $this->analyzeKeyphraseLength($keyphrase),                               //* Keyphrase length
-        'subheadings'     => $this->analyzeKeyphraseInSubheadings($content_full, $keyphrase),         //* Keyphrase in subheadings
-        'images'          => $this->analyzeImageAltTags($content_full, $keyphrase),                   //* Keyphrase in Image alt tags
-        'title'           => $this->analyzeKeyphraseInTitle($title, $keyphrase),                      //* Keyphrase in page title
-        'link'            => $this->analyzeLinkKeyphrase($content_full, $keyphrase),                  //* Keyphrase in link
-        'used'            => $this->analyzePreviouslyUsedKeyphrase($keyphrase, $list_keyphrase),      //* Previously used keyphrase
-        'slug'            => $this->analyzeKeyphraseInSlug($keyphrase, $slug),                        //* Keyphrase in slug
-        'meta_desc'       => $this->analyzeKeyphraseInMetaDescription($meta_description, $keyphrase), //* Keyphrase in Meta Description
-        'meta_desc_length'=> $this->analyzeMetaDescriptionLength($meta_description)                   //* Meta Description length
+        'introduction'           => $this->analyzeFocusKeyphraseInIntroduction($content, $keyphrase),          //* Keyphrase in introduction
+        'density'                => $this->analyzeKeyphraseDensity($content, $keyphrase),                      //* Keyphrase density
+        'distribution'           => $this->analyzeKeyphraseDistribution($content, $keyphrase),                 //* Keyphrase distribution
+        'length'                 => $this->analyzeKeyphraseLength($keyphrase),                                 //* Keyphrase length
+        'subheadings'            => $this->analyzeKeyphraseInSubheadings($content, $keyphrase),                //* Keyphrase in subheadings
+        'images'                 => $this->analyzeImageAltTags($content, $keyphrase),                          //* Keyphrase in Image alt tags
+        'title'                  => $this->analyzeKeyphraseInTitle($title, $keyphrase),                        //* Keyphrase in page title
+        'link'                   => $this->analyzeLinkKeyphrase($content, $keyphrase),                         //* Keyphrase in link
+        'slug'                   => $this->analyzeKeyphraseInSlug($keyphrase, $slug),                          //* Keyphrase in slug
+        'meta_desc'              => $this->analyzeKeyphraseInMetaDescription($meta_description, $keyphrase),   //* Keyphrase in Meta Description
+        'used'                   => $this->analyzePreviouslyUsedKeyphrase($keyphrase, $list_keyphrase),        //* Previously used keyphrase
+        'meta_desc_length'       => $this->analyzeMetaDescriptionLength($meta_description),                    //* Meta Description length
+        'outbound_links'         => $this->analyzeOutboundLinks($content, $this->domain),                      //* Outbound links
+        'internal_links'         => $this->analyzeInternalLinks($content, $this->domain),                      //* Internal links
+        'images'                 => $this->analyzeImages($content),                                            //* Images
+        'text_length'            => $this->analyzeWordCount($content),                                         //* Text length
+        'seo_title_width'        => $this->analyzePageTitle($title),                                           //* SEO title width
+      ],
+      'readability' => [
+        'wordComplexity'         => $this->analyzeWordComplexity($content, $title),                            //* Word complexity
+        'sentenceLength'         => $this->analyzeSentenceLength($content),                                    //* Sentence length
+        'paragraphLength'        => $this->analyzeParagraphLength($content),                                   //* Paragraph length
+        'subheadingDistribution' => $this->analyzeSubheadingDistribution($content),                            //* Subheading distribution
+        'consecutiveSentences'   => $this->analyzeConsecutiveSentences($content),                              //* Consecutive sentences
+        'transitionWords'        => $this->analyzeTransitionWords($content),                                   //* Transition words
+        'passiveVoice'           => $this->analyzePassiveVoice($content),                                      //* Passive voice
       ]
     ];
+  }
+
+  //! INSIGHT
+
+  public function wordCount($content) {
+    $word_count = str_word_count(strip_tags($content));
+    return $word_count;
+  }
+
+  public function readingTime($content) {
+    $word_count = str_word_count(strip_tags($content));
+    $words_per_minute = 200; //* Average reading speed
+    $time_in_minutes = ceil($word_count / $words_per_minute); //* Pembulatan
+    return $time_in_minutes;
+  }
+
+  public function extractKeywords($content, $title) {
+    $all_text = strtolower(strip_tags($content) . ' ' . $title);
+    $words = array_count_values(str_word_count($all_text, 1));
+    arsort($words);
+    return array_slice($words, 0, 10, true);
+  }
+
+  //* Flesch-Kincaid Grade Level lebih fokus pada tingkat pendidikan atau kelas sekolah yang dibutuhkan untuk memahami teks.
+  /**
+   *
+   * SOURCE:
+   * https://readable.com/readability/flesch-reading-ease-flesch-kincaid-grade-level/
+   *
+   **/
+  public function fleschKincaidGrade($content) {
+    $content   = strip_tags($content);
+    $words     = str_word_count($content, 1);
+    $sentences = preg_split('/[.!?]/', $content);
+    $syllables = 0;
+    foreach ($words as $word) {
+      $syllables += $this->syllableCount($word);
+    }
+    $word_count     = count($words);
+    $sentence_count = count($sentences);
+    return 0.39 * ($word_count / $sentence_count) + 11.8 * ($syllables / $word_count) - 15.59;
+  }
+
+  //* Flesch Reading Ease memberikan angka yang lebih intuitif (semakin tinggi angkanya, semakin mudah dibaca).
+  /**
+   *
+   * SOURCE:
+   * https://readable.com/readability/flesch-reading-ease-flesch-kincaid-grade-level/
+   *
+   **/
+  public function fleschReadingEase($content) {
+    $content   = strip_tags($content);
+    $words     = str_word_count($content, 1);
+    $sentences = preg_split('/[.!?]/', $content);
+    $syllables = 0;
+    foreach ($words as $word) {
+      $syllables += $this->syllableCount($word);
+    }
+    $word_count     = count($words);
+    $sentence_count = max(1, count($sentences));
+    return 206.835 - (1.015 * ($word_count / $sentence_count)) - (84.6 * ($syllables / $word_count));
+  }
+
+  private function syllableCount($word) {
+    return max(1, preg_match_all('/[aeiouy]+/', strtolower($word)));
+  }
+
+  private function readabilityDescription($type, $score) {
+    switch($type) {
+      case 'flesch_reading_ease':
+        if ($score >= 90) {
+          return [
+            'keterangan' => 'Sangat mudah dibaca',
+            'informasi'  => 'Cocok untuk anak-anak atau teks sederhana'
+          ];
+        } elseif ($score >= 60) {
+          return [
+            'keterangan' => 'Cukup mudah dibaca',
+            'informasi'  => 'Cocok untuk siswa SMA atau pembaca umum'
+          ];
+        } elseif ($score >= 30) {
+          return [
+            'keterangan' => 'Sulit dibaca',
+            'informasi'  => 'Cocok untuk pembaca dewasa atau profesional'
+          ];
+        } else {
+          return [
+            'keterangan' => 'Sangat sulit dibaca',
+            'informasi'  => 'Cocok untuk akademik / teknis'
+          ];
+        }
+        break;
+      case 'flesch_kincaid':
+        if ($score <= 5) {
+          return [
+            'keterangan' => 'Sangat mudah dibaca',
+            'informasi'  => 'Cocok untuk anak-anak kelas 5 atau lebih muda'
+          ];
+        } elseif ($score <= 8) {
+          return [
+            'keterangan' => 'Cukup mudah dibaca',
+            'informasi'  => 'Cocok untuk siswa kelas 6 hingga 8'
+          ];
+        } elseif ($score <= 12) {
+          return [
+            'keterangan' => 'Sedang',
+            'informasi'  => 'Cocok untuk siswa SMA'
+          ];
+        } elseif ($score <= 16) {
+          return [
+            'keterangan' => 'Sulit dibaca',
+            'informasi'  => 'Cocok untuk mahasiswa tingkat awal'
+          ];
+        } else {
+          return [
+            'keterangan' => 'Sangat sulit dibaca',
+            'informasi'  => 'Cocok untuk mahasiswa tingkat lanjut atau teks teknis'
+          ];
+        }
+        break;
+    }
   }
 
   //! KEYPHRASE
 
   public function analyzeFocusKeyphraseInIntroduction($content, $keyphrase) {
+    $content = strip_tags($content);
     //* Extract the first 150 characters or first sentence as the introduction
     $introduction         = substr($content, 0, strpos($content, '.') + 1) ?: substr($content, 0, 150);
     $is_keyphrase_present = stripos($introduction, $keyphrase) !== false;
@@ -486,121 +614,6 @@ class Lib_ArticleSEO
     return $result;
   }
 
-  //! READABILITY
-  /**
-   *
-   * SOURCE:
-   * https://readable.com/readability/flesch-reading-ease-flesch-kincaid-grade-level/
-   *
-   **/
-
-  public function wordCount($content) {
-    $word_count = str_word_count(strip_tags($content));
-    return $word_count;
-  }
-
-  public function readingTime($content) {
-    $word_count = str_word_count(strip_tags($content));
-    $words_per_minute = 200; //* Average reading speed
-    $time_in_minutes = ceil($word_count / $words_per_minute); //* Pembulatan
-    return $time_in_minutes;
-  }
-
-  public function extractKeywords($content, $title) {
-    $all_text = strtolower($content . ' ' . $title);
-    $words = array_count_values(str_word_count($all_text, 1));
-    arsort($words);
-    return array_slice($words, 0, 10, true);
-  }
-
-  //* Flesch-Kincaid Grade Level lebih fokus pada tingkat pendidikan atau kelas sekolah yang dibutuhkan untuk memahami teks.
-  public function fleschKincaidGrade($text) {
-    $words     = str_word_count($text, 1);
-    $sentences = preg_split('/[.!?]/', $text);
-    $syllables = 0;
-    foreach ($words as $word) {
-      $syllables += $this->syllableCount($word);
-    }
-    $word_count     = count($words);
-    $sentence_count = count($sentences);
-    return 0.39 * ($word_count / $sentence_count) + 11.8 * ($syllables / $word_count) - 15.59;
-  }
-
-  //* Flesch Reading Ease memberikan angka yang lebih intuitif (semakin tinggi angkanya, semakin mudah dibaca).
-  public function fleschReadingEase($text) {
-    $words     = str_word_count($text, 1);
-    $sentences = preg_split('/[.!?]/', $text);
-    $syllables = 0;
-    foreach ($words as $word) {
-      $syllables += $this->syllableCount($word);
-    }
-    $word_count     = count($words);
-    $sentence_count = max(1, count($sentences));
-    return 206.835 - (1.015 * ($word_count / $sentence_count)) - (84.6 * ($syllables / $word_count));
-  }
-
-  private function syllableCount($word) {
-    return max(1, preg_match_all('/[aeiouy]+/', strtolower($word)));
-  }
-
-  private function readabilityDescription($type, $score) {
-    switch($type) {
-      case 'flesch_reading_ease':
-        if ($score >= 90) {
-          return [
-            'keterangan' => 'Sangat mudah dibaca',
-            'informasi'  => 'Cocok untuk anak-anak atau teks sederhana'
-          ];
-        } elseif ($score >= 60) {
-          return [
-            'keterangan' => 'Cukup mudah dibaca',
-            'informasi'  => 'Cocok untuk siswa SMA atau pembaca umum'
-          ];
-        } elseif ($score >= 30) {
-          return [
-            'keterangan' => 'Sulit dibaca',
-            'informasi'  => 'Cocok untuk pembaca dewasa atau profesional'
-          ];
-        } else {
-          return [
-            'keterangan' => 'Sangat sulit dibaca',
-            'informasi'  => 'Cocok untuk akademik / teknis'
-          ];
-        }
-        break;
-      case 'flesch_kincaid':
-        if ($score <= 5) {
-          return [
-            'keterangan' => 'Sangat mudah dibaca',
-            'informasi'  => 'Cocok untuk anak-anak kelas 5 atau lebih muda'
-          ];
-        } elseif ($score <= 8) {
-          return [
-            'keterangan' => 'Cukup mudah dibaca',
-            'informasi'  => 'Cocok untuk siswa kelas 6 hingga 8'
-          ];
-        } elseif ($score <= 12) {
-          return [
-            'keterangan' => 'Sedang',
-            'informasi'  => 'Cocok untuk siswa SMA'
-          ];
-        } elseif ($score <= 16) {
-          return [
-            'keterangan' => 'Sulit dibaca',
-            'informasi'  => 'Cocok untuk mahasiswa tingkat awal'
-          ];
-        } else {
-          return [
-            'keterangan' => 'Sangat sulit dibaca',
-            'informasi'  => 'Cocok untuk mahasiswa tingkat lanjut atau teks teknis'
-          ];
-        }
-        break;
-    }
-  }
-
-  //! INSIGHT
-
   public function analyzeOutboundLinks($htmlContent, $currentDomain) {
     $dom = new DOMDocument();
     @$dom->loadHTML($htmlContent);
@@ -784,4 +797,559 @@ class Lib_ArticleSEO
     return $result;
   }
 
+  //! READABILITY
+
+  public function analyzeWordComplexity($content, $title) {
+    // Extract complex words
+    $complex_words      = $this->extractComplexWords($content, $title);
+    $total_words        = str_word_count(strip_tags($content));
+    $complex_word_count = array_sum($complex_words);
+    $percentage_complex = $total_words > 0 ? ($complex_word_count / $total_words) * 100 : 0;
+
+    $result = [
+      'complex_word_count' => $complex_word_count,
+      'total_words'        => $total_words,
+      'percentage_complex' => round($percentage_complex, 2),
+      'status'             => '',
+      'message'            => '',
+    ];
+
+    if ($percentage_complex > 15) {
+        $result['status'] = 'orange';
+        $result['message'] = 'Teks mengandung terlalu banyak kata kompleks. Pertimbangkan untuk menyederhanakannya.';
+    } else {
+        $result['status'] = 'green';
+        $result['message'] = 'Anda tidak menggunakan terlalu banyak kata kompleks, membuat teks mudah dibaca. Kerja bagus!';
+    }
+
+    return $result;
+  }
+  private function extractComplexWords($content, $title, $min_length = 8) {
+    // Combine content and title, normalize case
+    $all_text = strtolower($content . ' ' . $title);
+
+    // Count word occurrences
+    $words = array_count_values(str_word_count($all_text, 1));
+
+    // Filter for complex words based on length
+    $complex_words = array_filter($words, function ($word) use ($min_length) {
+      return strlen($word) >= $min_length;
+    });
+
+    // Sort by frequency
+    arsort($complex_words);
+
+    return $complex_words;
+  }
+
+  public function analyzeSentenceLength($content, $max_words = 20) {
+    // Split the content into sentences
+    $sentences       = preg_split('/(?<=[.!?])\s+/', strip_tags($content), -1, PREG_SPLIT_NO_EMPTY);
+    $total_sentences = count($sentences);
+    $long_sentences  = array_filter($sentences, function ($sentence) use ($max_words) {
+      return str_word_count($sentence) > $max_words;
+    });
+
+    $long_sentence_count = count($long_sentences);
+    $percentage_long = $total_sentences > 0 ? ($long_sentence_count / $total_sentences) * 100 : 0;
+
+    $result = [
+      'total_sentences'     => $total_sentences,
+      'long_sentence_count' => $long_sentence_count,
+      'percentage_long'     => round($percentage_long, 2),
+      'status'              => '',
+      'message'             => '',
+    ];
+
+    if ($percentage_long > 25) {
+      $result['status'] = 'orange';
+      $result['message'] = 'Terlalu banyak kalimat panjang. Cobalah untuk membaginya menjadi kalimat yang lebih pendek.';
+    } else {
+      $result['status'] = 'green';
+      $result['message'] = 'Kalimat-kalimat Anda memiliki panjang yang baik. Bagus sekali!';
+    }
+
+    return $result;
+  }
+
+  public function analyzeParagraphLength($content, $max_sentences = 4) {
+    // Split the content into paragraphs
+    $paragraphs       = preg_split('/\n+/', strip_tags($content), -1, PREG_SPLIT_NO_EMPTY);
+    $total_paragraphs = count($paragraphs);
+    $long_paragraphs  = array_filter($paragraphs, function ($paragraph) use ($max_sentences) {
+      $sentences = preg_split('/(?<=[.!?])\s+/', $paragraph, -1, PREG_SPLIT_NO_EMPTY);
+      return count($sentences) > $max_sentences;
+    });
+
+    $long_paragraph_count = count($long_paragraphs);
+    $result = [
+      'total_paragraphs'     => $total_paragraphs,
+      'long_paragraph_count' => $long_paragraph_count,
+      'status'               => '',
+      'message'              => '',
+    ];
+
+    if ($long_paragraph_count > 0) {
+      $result['status'] = 'orange';
+      $result['message'] = 'Beberapa paragraf terlalu panjang. Usahakan agar setiap paragraf tidak lebih dari ' . $max_sentences . ' kalimat.';
+    } else {
+      $result['status'] = 'green';
+      $result['message'] = 'Tidak ada paragraf yang terlalu panjang. Kerja bagus!';
+    }
+
+    return $result;
+  }
+
+  public function analyzeSubheadingDistribution($content) {
+    // Extract headings from the content
+    preg_match_all('/<h[1-6][^>]*>.*?<\/h[1-6]>/', $content, $matches);
+    $headings = $matches[0];
+
+    // Remove HTML tags to count word distribution between headings
+    $clean_content     = strip_tags($content);
+    $word_count        = str_word_count($clean_content);
+    $heading_positions = [];
+
+    foreach ($headings as $heading) {
+      $position = strpos($clean_content, strip_tags($heading));
+      $heading_positions[] = $position;
+    }
+
+    $heading_distribution = count($headings) > 0 
+      ? round(($word_count / (count($headings) + 1)), 2)
+      : $word_count;
+
+    $result = [
+      'total_headings'       => count($headings),
+      'word_count'           => $word_count,
+      'heading_distribution' => $heading_distribution,
+      'status'               => '',
+      'message'              => '',
+    ];
+
+    // Evaluate distribution
+    if (count($headings) === 0) {
+      $result['status'] = 'red';
+      $result['message'] = 'Tidak ada subjudul. Gunakan subjudul untuk membuat konten lebih terstruktur dan mudah dibaca.';
+    } elseif ($heading_distribution > 300) {
+      $result['status'] = 'orange';
+      $result['message'] = 'Distribusi subjudul tidak seimbang. Tambahkan lebih banyak subjudul untuk mengatur teks yang panjang.';
+    } else {
+      $result['status'] = 'green';
+      $result['message'] = 'Distribusi subjudul: Kerja bagus!';
+    }
+
+    return $result;
+  }
+
+  public function analyzeConsecutiveSentences($content) {
+    // Normalize content and split it into sentences
+    $clean_content = strip_tags($content); // Remove HTML tags
+    $sentences = preg_split('/(?<=[.!?])\s+/', $clean_content, -1, PREG_SPLIT_NO_EMPTY);
+
+    $consecutive_count = 0;
+    $previous_start_words = [];
+    $max_consecutive = 0;
+
+    foreach ($sentences as $sentence) {
+      // Get the first word of each sentence
+      $words = explode(' ', trim($sentence));
+      $start_word = strtolower($words[0]);
+
+      if (in_array($start_word, $previous_start_words)) {
+        $consecutive_count++;
+        $max_consecutive = max($max_consecutive, $consecutive_count);
+      } else {
+        $consecutive_count = 1; // Reset counter for consecutive sentences
+      }
+
+      $previous_start_words = [$start_word];
+    }
+
+    $result = [
+      'total_sentences' => count($sentences),
+      'max_consecutive' => $max_consecutive,
+      'status'          => '',
+      'message'         => '',
+    ];
+
+    // Evaluate sentence variety
+    if ($max_consecutive > 2) {
+      $result['status'] = 'orange';
+      $result['message'] = 'Ada beberapa kalimat berturut-turut yang dimulai dengan kata yang sama. Pertimbangkan untuk menambahkan variasi.';
+    } elseif ($max_consecutive === 2) {
+      $result['status'] = 'yellow';
+      $result['message'] = 'Beberapa kalimat dimulai dengan kata yang sama, tetapi variasi sudah cukup baik.';
+    } else {
+      $result['status'] = 'green';
+      $result['message'] = 'Kalimat berturut-turut: Ada cukup variasi dalam kalimat Anda. Bagus!';
+    }
+
+    return $result;
+  }
+
+  public function analyzeTransitionWords($content) {
+    // Define transition words (single and multiple words)
+    $singleWords = [
+      "adakalanya",
+      "agak",
+      "agar",
+      "akhirnya",
+      "alhasil",
+      "andaikan",
+      "bahkan",
+      "bahwasannya",
+      "berikut",
+      "betapapun",
+      "biarpun",
+      "biasanya",
+      "contohnya",
+      "dahulunya",
+      "diantaranya",
+      "dikarenakan",
+      "disebabkan",
+      "dulunya",
+      "faktanya",
+      "hasilnya",
+      "intinya",
+      "jadi",
+      "jua",
+      "juga",
+      "kadang-kadang",
+      "kapanpun",
+      "karena",
+      "karenanya",
+      "kedua",
+      "kelak",
+      "kemudian",
+      "kesimpulannya",
+      "khususnya",
+      "langsung",
+      "lantaran",
+      "maka",
+      "makanya",
+      "masih",
+      "memang",
+      "meski",
+      "meskipun",
+      "misalnya",
+      "mulanya",
+      "nantinya",
+      "nyatanya",
+      "pendeknya",
+      "pertama",
+      "ringkasnya",
+      "rupanya",
+      "seakan-akan",
+      "sebaliknya",
+      "sebelum",
+      "sebetulnya",
+      "sedangkan",
+      "segera",
+      "sehingga",
+      "sekali-sekali",
+      "sekalipun",
+      "sekiranya",
+      "selagi",
+      "selain",
+      "selama",
+      "selanjutnya",
+      "semasa",
+      "semasih",
+      "semenjak",
+      "sementara",
+      "semula",
+      "sepanjang",
+      "serasa",
+      "seraya",
+      "seringkali",
+      "sesungguhnya",
+      "setelahnya",
+      "seterusnya",
+      "setidak-tidaknya",
+      "setidaknya",
+      "sewaktu-waktu",
+      "sewaktu",
+      "tadinya",
+      "tentunya",
+      "terakhir",
+      "terdahulu",
+      "terlebih",
+      "ternyata",
+      "terpenting",
+      "terutama",
+      "terutamanya",
+      "tetapi",
+      "umpamanya",
+      "umumnya",
+      "utamanya",
+      "walau",
+      "walaupun",
+      "yaitu",
+      "yakni",
+      "akibatnya",
+      "hingga",
+      "kadang",
+      "kendatipun",
+      "ketiga",
+      "lainnya",
+      "manakala",
+      "namun",
+      "pastinya",
+      "pertama-tama",
+      "sampai-sampai",
+      "sebaliknya",
+      "sebelumnya",
+      "sebetulnya",
+      "sesekali"
+    ];
+
+    $multipleWords = [
+      "agar supaya",
+      "akan tetapi",
+      "apa lagi",
+      "asal saja",
+      "bagaimanapun juga",
+      "bahkan jika",
+      "bahkan lebih",
+      "begitu juga",
+      "berbeda dari",
+      "biarpun begitu",
+      "biarpun demikian",
+      "bilamana saja",
+      "cepat atau lambat",
+      "dalam hal ini",
+      "dalam jangka panjang",
+      "dalam kasus ini",
+      "dalam kasus lain",
+      "dalam kedua kasus",
+      "dalam kenyataannya",
+      "dalam pandangan",
+      "dalam situasi ini",
+      "dalam situasi seperti itu",
+      "dan lagi",
+      "dari awal",
+      "dari pada",
+      "dari waktu ke waktu",
+      "demikian juga",
+      "demikian pula",
+      "dengan serentak",
+      "dengan cara yang sama",
+      "dengan jelas",
+      "dengan kata lain",
+      "dengan ketentuan",
+      "dengan nyata",
+      "dengan panjang lebar",
+      "dengan pemikiran ini",
+      "dengan syarat bahwa",
+      "dengan terang",
+      "di pihak lain",
+      "di sisi lain",
+      "dibandingkan dengan",
+      "disebabkan oleh",
+      "ditambah dengan",
+      "hanya jika",
+      "harus diingat",
+      "hasil dari",
+      "hingga kini",
+      "kalau tidak",
+      "kalau-kalau",
+      "kali ini",
+      "kapan saja",
+      "karena alasan itulah",
+      "karena alasan tersebut",
+      "kecuali kalau",
+      "kendatipun begitu",
+      "kendatipun demikian",
+      "lebih jauh",
+      "lebih lanjut",
+      "maka dari itu",
+      "meskipun demikian",
+      "oleh karena itu",
+      "oleh karenanya",
+      "oleh sebab itu",
+      "pada akhirnya",
+      "pada awalnya",
+      "pada dasarnya",
+      "pada intinya",
+      "pada kenyataannya",
+      "pada kesempatan ini",
+      "pada mulanya",
+      "pada saat ini",
+      "pada saat",
+      "pada situasi ini",
+      "pada umumnya",
+      "pada waktu yang sama",
+      "pada waktunya",
+      "paling tidak",
+      "pendek kata",
+      "penting untuk disadari",
+      "poin penting lainnya",
+      "saat ini",
+      "sama halnya",
+      "sama pentingnya",
+      "sama sekali",
+      "sampai sekarang",
+      "sebab itu",
+      "sebagai akibatnya",
+      "sebagai contoh",
+      "sebagai gambaran",
+      "sebagai gantinya",
+      "sebagai hasilnya",
+      "sebagai tambahan",
+      "sebelum itu",
+      "secara bersamaan",
+      "secara eksplisit",
+      "secara keseluruhan",
+      "secara khusus",
+      "secara menyeluruh",
+      "secara signifikan",
+      "secara singkat",
+      "secara umum",
+      "sejalan dengan ini",
+      "sejalan dengan itu",
+      "sejauh ini",
+      "sekali lagi",
+      "sekalipun begitu",
+      "sekalipun demikian",
+      "sementara itu",
+      "seperti yang bisa dilihat",
+      "seperti yang sudah saya katakan",
+      "seperti yang sudah saya tunjukkan",
+      "sesudah itu",
+      "setelah ini",
+      "setelah itu",
+      "tak pelak lagi",
+      "tanpa menunda-nunda lagi",
+      "tentu saja",
+      "terutama sekali",
+      "tidak perlu dipertanyakan lagi",
+      "tidak sama",
+      "tidak seperti",
+      "untuk alasan ini",
+      "untuk alasan yang sama",
+      "untuk memperjelas",
+      "untuk menekankan",
+      "untuk menyimpulkan",
+      "untuk satu hal",
+      "untuk sebagian besar",
+      "untuk selanjutnya",
+      "untuk tujuan ini",
+      "walaupun demikian",
+      "yang lain",
+      "yang terakhir",
+      "yang terpenting",
+      "begitu pula",
+      "berbeda dengan",
+      "betapapun juga",
+      "dalam hal itu",
+      "di samping itu",
+      "hal pertama yang perlu diingat",
+      "kadang kala",
+      "karena itu",
+      "lagi pula",
+      "lambat laun",
+      "mengingat bahwa",
+      "meskipun begitu",
+      "pada umumnya",
+      "pada waktu",
+      "saat ini juga",
+      "sampai saat ini",
+      "sebagian besar",
+      "secara terperinci",
+      "selain itu",
+      "seperti yang sudah dijelaskan",
+      "seperti yang tertera di",
+      "tak seperti",
+      "tanpa memperhatikan",
+      "tentu saja",
+      "untuk memastikan",
+      "untuk menggambarkan",
+      "walaupun begitu"
+    ];
+
+    // Normalize content
+    $clean_content = strtolower(strip_tags($content));
+
+    // Count transition words
+    $transition_count = 0;
+
+    foreach ($singleWords as $word) {
+      $transition_count += substr_count($clean_content, $word);
+    }
+
+    foreach ($multipleWords as $phrase) {
+      $transition_count += substr_count($clean_content, $phrase);
+    }
+
+    $total_sentences = max(1, count(preg_split('/(?<=[.!?])\s+/', $clean_content, -1, PREG_SPLIT_NO_EMPTY)));
+    $percentage = ($transition_count / $total_sentences) * 100;
+
+    $result = [
+      'total_sentences'  => $total_sentences,
+      'transition_count' => $transition_count,
+      'percentage'       => round($percentage, 2),
+      'status'           => '',
+      'message'          => '',
+    ];
+
+    // Evaluate transition word usage
+    if ($percentage < 30) {
+      $result['status'] = 'red';
+      $result['message'] = 'Tidak ada kalimat yang mengandung kata transisi. Gunakan beberapa.';
+    } else {
+      $result['status'] = 'green';
+      $result['message'] = 'Kata transisi: Bagus! Anda menggunakan kata transisi dengan baik.';
+    }
+
+    return $result;
+  }
+
+  public function analyzePassiveVoice($content) {
+    $content = strip_tags($content);
+    // List of common passive voice indicators in Indonesian
+    $passiveIndicators = [
+      '/\bdi\w+/i',  // Words starting with "di-"
+      '/\bter\w+/i', // Words starting with "ter-"
+      '/\bdapat\b/i', // The word "dapat"
+      '/\bakan\b/i',  // The word "akan"
+      '/\bpernah\b/i' // The word "pernah"
+    ];
+
+    // Split text into sentences
+    $sentences = preg_split('/(?<=[.!?])\s+/', $content, -1, PREG_SPLIT_NO_EMPTY);
+
+    $passiveCount = 0;
+
+    foreach ($sentences as $sentence) {
+      foreach ($passiveIndicators as $pattern) {
+        if (preg_match($pattern, $sentence)) {
+          $passiveCount++;
+          break; // No need to check other patterns for this sentence
+        }
+      }
+    }
+
+    $totalSentences = count($sentences);
+    $passivePercentage = $totalSentences > 0 ? ($passiveCount / $totalSentences) * 100 : 0;
+
+    $result = [
+      'total_sentences'    => $totalSentences,
+      'passive_count'      => $passiveCount,
+      'passive_percentage' => round($passivePercentage, 2),
+      'status'             => '',
+      'message'            => ''
+    ];
+
+    // Set status and message based on the analysis
+    if ($passivePercentage > 50) {
+      $result['status']  = 'red';
+      $result['message'] = 'Sebagian besar kalimat menggunakan suara pasif. Pertimbangkan menggunakan suara aktif lebih banyak.';
+    } else {
+      $result['status']  = 'green';
+      $result['message'] = 'Penggunaan suara pasif cukup seimbang. Bagus!';
+    }
+
+    return $result;
+  }
 }
