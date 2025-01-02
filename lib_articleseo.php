@@ -16,43 +16,73 @@ class Lib_ArticleSEO
 
     $score = $this->fleschKincaidGrade($content);
     return [
-      'insight'     => [
-        'score'                  => round($score, 2),                                                          //* Score
-        'score_ket'              => $this->readabilityDescription('flesch_kincaid', $score)['keterangan'],     //* Score - Keterangan
-        'score_info'             => $this->readabilityDescription('flesch_kincaid', $score)['informasi'],      //* Score - Informasi
-        'word_count'             => $this->wordCount($content),                                                //* Word count
-        'reading_time'           => $this->readingTime($content),                                              //* Reading time
-        'keyword_list'           => $this->extractKeywords($content, $title)                                   //* Keyword list
+      'insights'    => [
+        'score'                         => round($score, 2),                                                          //* Score
+        'score_ket'                     => $this->readabilityDescription('flesch_kincaid', $score)['keterangan'],     //* Score - Keterangan
+        'score_info'                    => $this->readabilityDescription('flesch_kincaid', $score)['informasi'],      //* Score - Informasi
+        'word_count'                    => $this->wordCount($content),                                                //* Word count
+        'reading_time'                  => $this->readingTime($content),                                              //* Reading time
+        'keyword_list'                  => $this->extractKeywords($content, $title)                                   //* Keyword list
       ],
-      'keyphrase'   => [
-        'introduction'           => $this->analyzeFocusKeyphraseInIntroduction($content, $keyphrase),          //* Keyphrase in introduction
-        'density'                => $this->analyzeKeyphraseDensity($content, $keyphrase),                      //* Keyphrase density
-        'distribution'           => $this->analyzeKeyphraseDistribution($content, $keyphrase),                 //* Keyphrase distribution
-        'length'                 => $this->analyzeKeyphraseLength($keyphrase),                                 //* Keyphrase length
-        'subheadings'            => $this->analyzeKeyphraseInSubheadings($content, $keyphrase),                //* Keyphrase in subheadings
-        'images'                 => $this->analyzeImageAltTags($content, $keyphrase),                          //* Keyphrase in Image alt tags
-        'title'                  => $this->analyzeKeyphraseInTitle($title, $keyphrase),                        //* Keyphrase in page title
-        'link'                   => $this->analyzeLinkKeyphrase($content, $keyphrase),                         //* Keyphrase in link
-        'slug'                   => $this->analyzeKeyphraseInSlug($keyphrase, $slug),                          //* Keyphrase in slug
-        'meta_desc'              => $this->analyzeKeyphraseInMetaDescription($meta_description, $keyphrase),   //* Keyphrase in Meta Description
-        'used'                   => $this->analyzePreviouslyUsedKeyphrase($keyphrase, $list_keyphrase),        //* Previously used keyphrase
-        'meta_desc_length'       => $this->analyzeMetaDescriptionLength($meta_description),                    //* Meta Description length
-        'outbound_links'         => $this->analyzeOutboundLinks($content, $this->domain),                      //* Outbound links
-        'internal_links'         => $this->analyzeInternalLinks($content, $this->domain),                      //* Internal links
-        'images'                 => $this->analyzeImages($content),                                            //* Images
-        'text_length'            => $this->analyzeWordCount($content),                                         //* Text length
-        'seo_title_width'        => $this->analyzePageTitle($title),                                           //* SEO title width
+      'analyze'     => [
+        'keyphrase_in_introduction'     => $this->analyzeFocusKeyphraseInIntroduction($content, $keyphrase),          //* Keyphrase in introduction
+        'keyphrase_density'             => $this->analyzeKeyphraseDensity($content, $keyphrase),                      //* Keyphrase density
+        'keyphrase_distribution'        => $this->analyzeKeyphraseDistribution($content, $keyphrase),                 //* Keyphrase distribution
+        'keyphrase_length'              => $this->analyzeKeyphraseLength($keyphrase),                                 //* Keyphrase length
+        'keyphrase_in_subheadings'      => $this->analyzeKeyphraseInSubheadings($content, $keyphrase),                //* Keyphrase in subheadings
+        'keyphrase_in_image_alt_tags'   => $this->analyzeImageAltTags($content, $keyphrase),                          //* Keyphrase in Image alt tags
+        'keyphrase_in_page_title'       => $this->analyzeKeyphraseInTitle($title, $keyphrase),                        //* Keyphrase in page title
+        'keyphrase_in_link'             => $this->analyzeLinkKeyphrase($content, $keyphrase),                         //* Keyphrase in link
+        'keyphrase_in_slug'             => $this->analyzeKeyphraseInSlug($keyphrase, $slug),                          //* Keyphrase in slug
+        'keyphrase_in_meta_description' => $this->analyzeKeyphraseInMetaDescription($meta_description, $keyphrase),   //* Keyphrase in Meta Description
+        'previously_used_keyphrase'     => $this->analyzePreviouslyUsedKeyphrase($keyphrase, $list_keyphrase),        //* Previously used keyphrase
+        'meta_description_length'       => $this->analyzeMetaDescriptionLength($meta_description),                    //* Meta Description length
+        'outbound_links'                => $this->analyzeOutboundLinks($content, $this->domain),                      //* Outbound links
+        'internal_links'                => $this->analyzeInternalLinks($content, $this->domain),                      //* Internal links
+        'images'                        => $this->analyzeImages($content),                                            //* Images
+        'text_length'                   => $this->analyzeWordCount($content),                                         //* Text length
+        'seo_title_width'               => $this->analyzePageTitle($title),                                           //* SEO title width
       ],
       'readability' => [
-        'wordComplexity'         => $this->analyzeWordComplexity($content, $title),                            //* Word complexity
-        'sentenceLength'         => $this->analyzeSentenceLength($content),                                    //* Sentence length
-        'paragraphLength'        => $this->analyzeParagraphLength($content),                                   //* Paragraph length
-        'subheadingDistribution' => $this->analyzeSubheadingDistribution($content),                            //* Subheading distribution
-        'consecutiveSentences'   => $this->analyzeConsecutiveSentences($content),                              //* Consecutive sentences
-        'transitionWords'        => $this->analyzeTransitionWords($content),                                   //* Transition words
-        'passiveVoice'           => $this->analyzePassiveVoice($content),                                      //* Passive voice
+        'word_complexity'                => $this->analyzeWordComplexity($content, $title),                           //* Word complexity
+        'sentence_length'                => $this->analyzeSentenceLength($content),                                   //* Sentence length
+        'paragraph_length'               => $this->analyzeParagraphLength($content),                                  //* Paragraph length
+        'subheading_distribution'        => $this->analyzeSubheadingDistribution($content),                           //* Subheading distribution
+        'consecutive_sentences'          => $this->analyzeConsecutiveSentences($content),                             //* Consecutive sentences
+        'transition_words'               => $this->analyzeTransitionWords($content),                                  //* Transition words
+        'passive_voice'                  => $this->analyzePassiveVoice($content),                                     //* Passive voice
       ]
     ];
+  }
+
+  public function calculateSuccessPercentage($data) {
+    $results = [];
+    foreach (['analyze', 'readability'] as $key) {
+      $total        = count($data[$key]);
+      $successCount = 0;
+      foreach ($data[$key] as $subkey => $value) {
+        if (isset($value['status']) && $value['status'] === 'success') {
+          $successCount++;
+        }
+      }
+
+      $percentage = ($successCount / $total) * 100;
+      if ($percentage >= 71) {
+        $info = 'success';
+      } elseif ($percentage >= 31) {
+        $info = 'warning';
+      } else {
+        $info = 'danger';
+      }
+
+      $results[$key] = [
+        'total'      => $total,
+        'success'    => $successCount,
+        'percentage' => round($percentage, 2),
+        'status'     => $info
+      ];
+    }
+    return $results;
   }
 
   //! INSIGHT
@@ -192,10 +222,10 @@ class Lib_ArticleSEO
     ];
 
     if ($is_keyphrase_present) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Keyphrase ditemukan di paragraf pembuka. Ini bagus untuk SEO.';
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase tidak ditemukan di paragraf pembuka. Tambahkan untuk meningkatkan relevansi SEO.';
     }
 
@@ -225,16 +255,16 @@ class Lib_ArticleSEO
     ];
 
     if ($keyphrase_count === 0) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase tidak ditemukan dalam konten.';
     } elseif ($density > 2.5) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Kepadatan keyphrase terlalu tinggi. Kurangi penggunaan keyphrase.';
     } elseif ($density >= 0.5) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = "Kepadatan keyphrase: Keyphrase ditemukan {$keyphrase_count} kali. Ini bagus!";
     } else {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Kepadatan keyphrase terlalu rendah. Tambahkan lebih banyak keyphrase untuk meningkatkan relevansi.';
     }
 
@@ -273,16 +303,16 @@ class Lib_ArticleSEO
     $non_empty_sections = array_filter($keyphrase_counts, fn($count) => $count > 0);
 
     if (count($non_empty_sections) === 3) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Bagus sekali! Keyphrase terdistribusi secara merata di seluruh konten.';
     } elseif (count($non_empty_sections) === 2) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Keyphrase ditemukan di dua bagian. Pertimbangkan untuk mendistribusikannya lebih merata.';
     } elseif (count($non_empty_sections) === 1) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase hanya ditemukan di satu bagian. Sebarkan lebih merata di seluruh konten.';
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase tidak ditemukan. Tambahkan ke dalam konten untuk meningkatkan SEO.';
     }
 
@@ -300,13 +330,13 @@ class Lib_ArticleSEO
     ];
 
     if ($keyphrase_length >= 2 && $keyphrase_length <= 4) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Bagus sekali! Panjang keyphrase ideal untuk SEO.';
     } elseif ($keyphrase_length < 2) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase terlalu pendek. Pertimbangkan menambahkan kata untuk meningkatkan relevansi.';
     } elseif ($keyphrase_length > 4) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Keyphrase terlalu panjang. Usahakan antara 2–4 kata untuk hasil optimal.';
     }
 
@@ -336,13 +366,13 @@ class Lib_ArticleSEO
     ];
 
     if ($keyphrase_count >= 2) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = "{$keyphrase_count} dari subheading H2 dan H3 mencerminkan topik konten Anda. Kerja bagus!";
     } elseif ($keyphrase_count === 1) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = "Hanya 1 subheading H2 atau H3 yang mencerminkan topik konten Anda. Pertimbangkan menambahkannya ke lebih banyak subheading.";
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = "Tidak ada subheading H2 atau H3 yang mencerminkan topik konten Anda. Tambahkan keyphrase ke subheading untuk meningkatkan SEO.";
     }
 
@@ -393,16 +423,16 @@ class Lib_ArticleSEO
     ];
 
     if ($total_images === 0) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Tidak ada gambar pada halaman ini. Tambahkan gambar yang relevan untuk meningkatkan SEO.';
     } elseif ($images_with_keyphrase >= ceil($total_images / 2)) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = "Gambar di halaman ini memiliki alt attribute dengan setidaknya setengah kata dari keyphrase Anda. Kerja bagus!";
     } elseif ($images_with_keyphrase > 0) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = "Beberapa gambar memiliki alt attribute yang mengandung keyphrase Anda. Pertimbangkan menambahkan alt attribute pada lebih banyak gambar.";
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = "Tidak ada gambar di halaman ini yang memiliki alt attribute dengan keyphrase Anda. Perbaiki untuk meningkatkan SEO.";
     }
 
@@ -426,16 +456,16 @@ class Lib_ArticleSEO
       // Check if the keyphrase is at the beginning of the title
       if (strpos($clean_title, $clean_keyphrase) === 0) {
         // Keyphrase is at the beginning
-        $result['status'] = 'green';
+        $result['status'] = 'success';
         $result['message'] = 'Keyphrase berada di awal judul. Ini sangat baik untuk SEO.';
       } else {
         // Keyphrase is not at the beginning
-        $result['status'] = 'orange';
+        $result['status'] = 'warning';
         $result['message'] = 'Keyphrase ada di judul, tetapi tidak di awal. Pindahkan ke awal untuk hasil terbaik.';
       }
     } else {
       // Keyphrase is not found in the title
-      $result['status'] = 'red';
+      $result['status'] = 'danger';
       $result['message'] = 'Keyphrase tidak ditemukan dalam judul. Tambahkan keyphrase untuk meningkatkan relevansi SEO.';
     }
 
@@ -468,12 +498,12 @@ class Lib_ArticleSEO
     // Check if the keyphrase is used in any anchor text
     if ($link_keyphrase_count > 0) {
       // Keyphrase is found in anchor text
-      $result['status'] = 'red';
-      $result['message'] = 'Link keyphrase: Anda menautkan ke halaman lain dengan kata-kata yang ingin Anda rangkingkan. Jangan lakukan itu!';
+      $result['status'] = 'danger';
+      $result['message'] = 'Anda menautkan ke halaman lain dengan kata-kata yang ingin Anda rangkingkan. Jangan lakukan itu!';
     } else {
       // Keyphrase is not found in anchor text
-      $result['status'] = 'green';
-      $result['message'] = 'Link keyphrase: Tidak ada penggunaan kata kunci dalam teks anchor. Ini bagus untuk SEO.';
+      $result['status'] = 'success';
+      $result['message'] = 'Tidak ada penggunaan kata kunci dalam teks anchor. Ini bagus untuk SEO.';
     }
 
     return $result;
@@ -489,7 +519,7 @@ class Lib_ArticleSEO
 
     // Validate if $used_keyphrases is an array and not empty
     if (!is_array($used_keyphrases) || empty($used_keyphrases)) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Bagus! Tidak ada riwayat keyphrase sebelumnya.';
       return $result;
     }
@@ -501,10 +531,10 @@ class Lib_ArticleSEO
     // Check if the keyphrase is in the list of used keyphrases
     if (in_array($clean_keyphrase, $clean_used_keyphrases, true)) {
       $result['previously_used'] = true;
-      $result['status']          = 'red';
+      $result['status']          = 'danger';
       $result['message']         = 'Keyphrase sebelumnya telah digunakan. Jangan gunakan keyphrase lebih dari sekali.';
     } else {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Bagus! Keyphrase ini belum pernah digunakan sebelumnya.';
     }
 
@@ -514,7 +544,7 @@ class Lib_ArticleSEO
   public function analyzeKeyphraseInSlug($keyphrase, $slug) {
     // Validate if $slug is not empty
     if (empty($slug)) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Slug tidak boleh kosong. Tambahkan slug untuk meningkatkan SEO.';
       return $result;
     }
@@ -534,10 +564,10 @@ class Lib_ArticleSEO
     // Check if the keyphrase exists in the slug
     if (strpos($clean_slug, $clean_keyphrase) !== false) {
       $result['keyphrase_in_slug'] = true;
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Keyphrase dalam slug: Kerja bagus!';
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase tidak ditemukan dalam slug. Tambahkan untuk meningkatkan SEO.';
     }
 
@@ -547,7 +577,7 @@ class Lib_ArticleSEO
   public function analyzeKeyphraseInMetaDescription($meta_description, $keyphrase) {
     // Validate if $meta_description is not empty
     if (empty($meta_description)) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Meta description kosong. Tambahkan untuk meningkatkan relevansi SEO.';
       return $result;
     }
@@ -568,10 +598,10 @@ class Lib_ArticleSEO
 
     // Provide feedback based on the presence of the keyphrase
     if ($is_keyphrase_present) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Keyphrase muncul dalam meta description. Bagus sekali!';
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Keyphrase tidak ditemukan dalam meta description. Tambahkan untuk meningkatkan relevansi SEO.';
     }
 
@@ -591,23 +621,23 @@ class Lib_ArticleSEO
 
     // Validate if $meta_description is not empty
     if (empty($meta_description)) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Meta description kosong. Tambahkan untuk meningkatkan relevansi SEO.';
       return $result;
     }
 
     // Analyze the length and provide feedback
     if ($description_length > 156) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Panjang meta description lebih dari 156 karakter. Kurangi panjangnya agar seluruh deskripsi terlihat.';
     } elseif ($description_length >= 120 && $description_length <= 156) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Panjang meta description sangat baik! Pastikan tetap relevan dengan konten.';
     } elseif ($description_length < 120 && $description_length > 0) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Panjang meta description kurang dari ideal. Tambahkan beberapa kata lagi untuk menjelaskan konten lebih baik.';
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Meta description tidak ditemukan. Tambahkan deskripsi untuk meningkatkan SEO.';
     }
 
@@ -625,7 +655,7 @@ class Lib_ArticleSEO
         'nofollowed_links'     => 0,
         'sponsored_links'      => 0,
         'ugc_links'            => 0,
-        'status'               => 'red',
+        'status'               => 'danger',
         'info'                 => ''
     ];
 
@@ -652,14 +682,14 @@ class Lib_ArticleSEO
     }
 
     if ($result['followed_links'] > 0) {
-      $result['status'] = 'green';
-      $result['info']   = 'At least one followed link';
+      $result['status']  = 'success';
+      $result['message'] = 'Setidaknya ada satu link yang diikuti';
     } elseif ($result['nofollowed_links'] > 0) {
-      $result['status'] = 'orange';
-      $result['info']   = 'Only nofollowed links';
+      $result['status']  = 'warning';
+      $result['message'] = 'Hanya link nofollow';
     } else {
-      $result['status'] = 'red';
-      $result['info']   = 'No outbound links';
+      $result['status']  = 'danger';
+      $result['message'] = 'Tidak ada link keluar';
     }
 
     return $result;
@@ -670,8 +700,8 @@ class Lib_ArticleSEO
       'total_internal_links' => 0,
       'nofollowed_links'     => 0,
       'followed_links'       => 0,
-      'status'               => 'red', // Default traffic light status
-      'message'              => 'No internal links found', // Default message
+      'status'               => 'danger', // Default traffic light status
+      'message'              => 'Tidak ditemukan link internal', // Default message
     ];
 
     $dom = new DOMDocument();
@@ -700,14 +730,14 @@ class Lib_ArticleSEO
 
     if ($result['total_internal_links'] > 0) {
       if ($result['followed_links'] > 0) {
-        $result['status']  = 'green';
+        $result['status']  = 'success';
         $result['message'] = 'Internal link sudah dioptimalkan dengan link yang diikuti (followed).';
       } else {
-        $result['status']  = 'orange';
+        $result['status']  = 'warning';
         $result['message'] = 'Hanya ditemukan internal link nofollow. Pertimbangkan untuk menambahkan link yang diikuti (followed).';
       }
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Tidak ada internal link ditemukan. Tambahkan internal link untuk meningkatkan SEO.';
     }
 
@@ -737,18 +767,18 @@ class Lib_ArticleSEO
       }
 
       if ($result['images_with_alt'] === $result['total_images']) {
-        $result['status']  = 'green';
+        $result['status']  = 'success';
         $result['message'] = 'Semua gambar memiliki atribut alt yang baik.';
       } elseif ($result['images_with_alt'] > 0) {
-        $result['status']  = 'orange';
+        $result['status']  = 'warning';
         $result['message'] = 'Beberapa gambar tidak memiliki atribut alt. Tambahkan deskripsi alt untuk meningkatkan SEO.';
       } else {
-        $result['status']  = 'red';
+        $result['status']  = 'danger';
         $result['message'] = 'Tidak ada gambar yang memiliki atribut alt. Tambahkan deskripsi alt untuk semua gambar.';
       }
     } else {
-      $result['status']  = 'red';
-      $result['message'] = 'Tidak ada gambar ditemukan dalam konten. Tambahkan gambar untuk membuat konten lebih menarik.';
+      $result['status']    = 'danger';
+      $result['message']   = 'Tidak ada gambar ditemukan dalam konten. Tambahkan gambar untuk membuat konten lebih menarik.';
     }
 
     return $result;
@@ -763,13 +793,13 @@ class Lib_ArticleSEO
     ];
 
     if ($word_count >= 900) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Artikel memiliki jumlah kata yang sangat baik untuk SEO.';
     } elseif ($word_count >= 300) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Jumlah kata cukup, tetapi lebih banyak kata akan meningkatkan kualitas SEO.';
     } else {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Jumlah kata terlalu sedikit. Tambahkan lebih banyak konten untuk meningkatkan SEO.';
     }
 
@@ -787,10 +817,10 @@ class Lib_ArticleSEO
     ];
 
     if ($title_length < 50 || $title_length > 60) {
-      $result['status']  = 'orange';
+      $result['status']  = 'warning';
       $result['message'] = 'Panjang judul tidak ideal. Pastikan antara 50–60 karakter.';
     } elseif ($title_length >= 50 && $title_length <= 60) {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Judul halaman sangat baik untuk SEO. Panjang ideal dan unik.';
     }
 
@@ -815,10 +845,10 @@ class Lib_ArticleSEO
     ];
 
     if ($percentage_complex > 15) {
-        $result['status'] = 'orange';
+        $result['status'] = 'warning';
         $result['message'] = 'Teks mengandung terlalu banyak kata kompleks. Pertimbangkan untuk menyederhanakannya.';
     } else {
-        $result['status'] = 'green';
+        $result['status'] = 'success';
         $result['message'] = 'Anda tidak menggunakan terlalu banyak kata kompleks, membuat teks mudah dibaca. Kerja bagus!';
     }
 
@@ -862,10 +892,10 @@ class Lib_ArticleSEO
     ];
 
     if ($percentage_long > 25) {
-      $result['status'] = 'orange';
+      $result['status'] = 'warning';
       $result['message'] = 'Terlalu banyak kalimat panjang. Cobalah untuk membaginya menjadi kalimat yang lebih pendek.';
     } else {
-      $result['status'] = 'green';
+      $result['status'] = 'success';
       $result['message'] = 'Kalimat-kalimat Anda memiliki panjang yang baik. Bagus sekali!';
     }
 
@@ -890,10 +920,10 @@ class Lib_ArticleSEO
     ];
 
     if ($long_paragraph_count > 0) {
-      $result['status'] = 'orange';
+      $result['status'] = 'warning';
       $result['message'] = 'Beberapa paragraf terlalu panjang. Usahakan agar setiap paragraf tidak lebih dari ' . $max_sentences . ' kalimat.';
     } else {
-      $result['status'] = 'green';
+      $result['status'] = 'success';
       $result['message'] = 'Tidak ada paragraf yang terlalu panjang. Kerja bagus!';
     }
 
@@ -929,14 +959,14 @@ class Lib_ArticleSEO
 
     // Evaluate distribution
     if (count($headings) === 0) {
-      $result['status'] = 'red';
+      $result['status'] = 'danger';
       $result['message'] = 'Tidak ada subjudul. Gunakan subjudul untuk membuat konten lebih terstruktur dan mudah dibaca.';
     } elseif ($heading_distribution > 300) {
-      $result['status'] = 'orange';
+      $result['status'] = 'warning';
       $result['message'] = 'Distribusi subjudul tidak seimbang. Tambahkan lebih banyak subjudul untuk mengatur teks yang panjang.';
     } else {
-      $result['status'] = 'green';
-      $result['message'] = 'Distribusi subjudul: Kerja bagus!';
+      $result['status'] = 'success';
+      $result['message'] = 'Distribusi subjudul bagus!';
     }
 
     return $result;
@@ -975,13 +1005,13 @@ class Lib_ArticleSEO
 
     // Evaluate sentence variety
     if ($max_consecutive > 2) {
-      $result['status'] = 'orange';
+      $result['status'] = 'warning';
       $result['message'] = 'Ada beberapa kalimat berturut-turut yang dimulai dengan kata yang sama. Pertimbangkan untuk menambahkan variasi.';
     } elseif ($max_consecutive === 2) {
-      $result['status'] = 'yellow';
+      $result['status'] = 'warning';
       $result['message'] = 'Beberapa kalimat dimulai dengan kata yang sama, tetapi variasi sudah cukup baik.';
     } else {
-      $result['status'] = 'green';
+      $result['status'] = 'success';
       $result['message'] = 'Kalimat berturut-turut: Ada cukup variasi dalam kalimat Anda. Bagus!';
     }
 
@@ -1295,11 +1325,11 @@ class Lib_ArticleSEO
 
     // Evaluate transition word usage
     if ($percentage < 30) {
-      $result['status'] = 'red';
+      $result['status'] = 'danger';
       $result['message'] = 'Tidak ada kalimat yang mengandung kata transisi. Gunakan beberapa.';
     } else {
-      $result['status'] = 'green';
-      $result['message'] = 'Kata transisi: Bagus! Anda menggunakan kata transisi dengan baik.';
+      $result['status'] = 'success';
+      $result['message'] = 'Bagus! Anda menggunakan kata transisi dengan baik.';
     }
 
     return $result;
@@ -1343,10 +1373,10 @@ class Lib_ArticleSEO
 
     // Set status and message based on the analysis
     if ($passivePercentage > 50) {
-      $result['status']  = 'red';
+      $result['status']  = 'danger';
       $result['message'] = 'Sebagian besar kalimat menggunakan suara pasif. Pertimbangkan menggunakan suara aktif lebih banyak.';
     } else {
-      $result['status']  = 'green';
+      $result['status']  = 'success';
       $result['message'] = 'Penggunaan suara pasif cukup seimbang. Bagus!';
     }
 
