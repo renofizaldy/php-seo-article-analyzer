@@ -44,13 +44,13 @@ class Lib_ArticleSEO
         'seo_title_width'               => $this->analyzePageTitle($title),                                           //* SEO title width
       ],
       'readability' => [
-        'word_complexity'                => $this->analyzeWordComplexity($content, $title),                           //* Word complexity
-        'sentence_length'                => $this->analyzeSentenceLength($content),                                   //* Sentence length
-        'paragraph_length'               => $this->analyzeParagraphLength($content),                                  //* Paragraph length
-        'subheading_distribution'        => $this->analyzeSubheadingDistribution($content),                           //* Subheading distribution
-        'consecutive_sentences'          => $this->analyzeConsecutiveSentences($content),                             //* Consecutive sentences
-        'transition_words'               => $this->analyzeTransitionWords($content),                                  //* Transition words
-        'passive_voice'                  => $this->analyzePassiveVoice($content),                                     //* Passive voice
+        'word_complexity'               => $this->analyzeWordComplexity($content, $title),                            //* Word complexity
+        'sentence_length'               => $this->analyzeSentenceLength($content),                                    //* Sentence length
+        'paragraph_length'              => $this->analyzeParagraphLength($content),                                   //* Paragraph length
+        'subheading_distribution'       => $this->analyzeSubheadingDistribution($content),                            //* Subheading distribution
+        'consecutive_sentences'         => $this->analyzeConsecutiveSentences($content),                              //* Consecutive sentences
+        'transition_words'              => $this->analyzeTransitionWords($content),                                   //* Transition words
+        'passive_voice'                 => $this->analyzePassiveVoice($content),                                      //* Passive voice
       ]
     ];
   }
