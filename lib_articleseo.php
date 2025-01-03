@@ -78,7 +78,7 @@ class Lib_ArticleSEO
       $results[$key] = [
         'total'      => $total,
         'success'    => $successCount,
-        'percentage' => round($percentage, 2),
+        'percentage' => round($percentage, 0),
         'status'     => $info
       ];
     }
@@ -561,8 +561,11 @@ class Lib_ArticleSEO
     $clean_keyphrase = strtolower(trim($keyphrase));
     $clean_slug = strtolower(trim($slug));
 
+    // Convert keyphrase into slug format (replace spaces with hyphens and remove special characters)
+    $formatted_keyphrase = preg_replace('/[^a-z0-9\-]+/', '', str_replace(' ', '-', $clean_keyphrase));
+
     // Check if the keyphrase exists in the slug
-    if (strpos($clean_slug, $clean_keyphrase) !== false) {
+    if (strpos($clean_slug, $formatted_keyphrase) !== false) {
       $result['keyphrase_in_slug'] = true;
       $result['status']  = 'success';
       $result['message'] = 'Keyphrase dalam slug: Kerja bagus!';
@@ -610,6 +613,8 @@ class Lib_ArticleSEO
 
   public function analyzeMetaDescriptionLength($meta_description) {
     // Calculate the length of the meta description
+    $meta_description = html_entity_decode($meta_description);  // Decode HTML entities
+    $meta_description = str_replace('&nbsp;', '', $meta_description);  // Remove non-breaking spaces
     $description_length = strlen($meta_description);
 
     $result = [
