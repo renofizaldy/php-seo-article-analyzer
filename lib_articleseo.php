@@ -877,59 +877,129 @@ class Lib_ArticleSEO
     return $complex_words;
   }
 
-  public function analyzeSentenceLength($content, $max_words = 20) {
-    // Split the content into sentences
-    $sentences       = preg_split('/(?<=[.!?])\s+/', strip_tags($content), -1, PREG_SPLIT_NO_EMPTY);
-    $total_sentences = count($sentences);
-    $long_sentences  = array_filter($sentences, function ($sentence) use ($max_words) {
-      return str_word_count($sentence) > $max_words;
-    });
+  public function analyzeSentenceLength($text, $maxWords = 20) {
+    // Define default thresholds
+    $threshold = ['green' => 25, 'orange' => [25, 30], 'red' => 30];
 
-    $long_sentence_count = count($long_sentences);
-    $percentage_long = $total_sentences > 0 ? ($long_sentence_count / $total_sentences) * 100 : 0;
+    // Replace dots within links with a placeholder
+    $text = preg_replace_callback('/(<a[^>]*>.*?<\/a>)/s', function($matches) {
+      return str_replace('.', '{DOT}', $matches[0]);
+    }, $text);
 
-    $result = [
-      'total_sentences'     => $total_sentences,
-      'long_sentence_count' => $long_sentence_count,
-      'percentage_long'     => round($percentage_long, 2),
-      'status'              => '',
-      'message'             => '',
-    ];
+    // Tambahkan titik dan spasi pada elemen heading
+    $text = preg_replace('/(<h[1-6][^>]*>)(.*?)(<\/h[1-6]>)/', ' $1 $2. $3', $text);
+    // Tambahkan titik dan spasi pada elemen paragraf
+    $text = preg_replace('/(<p[^>]*>)(.*?)(<\/p>)/', ' $1 $2. $3', $text);
+    // Ganti format agar setelah titik ada '+'
+    $text = preg_replace('/(\w+)\.(\w+)/', '$1. +$2', $text);
+    // Pastikan ada spasi sebelum titik dan setelahnya di luar elemen HTML
+    $text = preg_replace('/\.(?=\S)/', '. +', $text);
+    // Tambahkan spasi awal untuk heading atau paragraf, jika tidak ada sebelumnya
+    $text = preg_replace('/(?<!\s)(<h[1-6]|<p)/', ' $1', $text);
 
-    if ($percentage_long > 25) {
-      $result['status'] = 'warning';
-      $result['message'] = 'Terlalu banyak kalimat panjang. Cobalah untuk membaginya menjadi kalimat yang lebih pendek.';
-    } else {
-      $result['status'] = 'success';
-      $result['message'] = 'Kalimat-kalimat Anda memiliki panjang yang baik. Bagus sekali!';
+    $sentences = preg_split('/(?<=[.?!])\s+(?![^<]*<\/a>)/', strip_tags($text), -1, PREG_SPLIT_NO_EMPTY);
+
+    // Restore dots inside links
+    $sentences = array_map(function($sentence) {
+      return str_replace('{DOT}', '.', $sentence); // Restore {DOT} back to '.'
+    }, $sentences);
+
+    $totalSentences     = count($sentences);
+    $longSentences      = 0;
+    $exceedingSentences = [];
+
+    foreach ($sentences as $sentence) {
+      preg_match_all('/\b[\w\']+\b/u', $sentence, $matches);
+      $wordCount = count($matches[0]);
+      if ($wordCount > $maxWords) {
+        $longSentences++;
+        $exceedingSentences[] = [
+          'sentence' => $sentence,
+          'wordCount' => $wordCount
+        ];
+      }
     }
 
-    return $result;
+    // Calculate the percentage of long sentences
+    $percentage = $totalSentences > 0 ? ($longSentences / $totalSentences) * 100 : 0;
+
+    // Determine the status and message
+    if ($percentage > $threshold['red']) {
+      $score   = 3;
+      $status  = 'danger';
+      $message = "$longSentences dari $totalSentences total kalimat memiliki lebih dari $maxWords kata, yang melebihi batas maksimum yang direkomendasikan sebesar $maxWords kata. Cobalah untuk memperpendek kalimat.";
+    } elseif ($percentage >= $threshold['orange'][0] && $percentage <= $threshold['orange'][1]) {
+      $score   = 6;
+      $status  = 'warning';
+      $message = "$longSentences dari $totalSentences total kalimat memiliki lebih dari $maxWords kata, yang melebihi batas maksimum yang direkomendasikan sebesar $maxWords kata. Cobalah untuk memperpendek kalimat.";
+    } else {
+      $score   = 9;
+      $status  = 'success';
+      $message = "Sangat baik!";
+    }
+
+    // Return the result as a table-like array
+    return [
+      'status'             => $status ,
+      'message'            => $message ,
+      'score'              => $score ,
+      'percentage'         => round($percentage, 2),
+      // 'exceedingSentences' => $exceedingSentences, //! Uncomment hanya saat ingin Debug saja
+      'criterion'          => $percentage > $threshold['red'] ? "> {$threshold['red']}%" :
+                              ($percentage >= $threshold['orange'][0] ? "Between {$threshold['orange'][0]} and {$threshold['orange'][1]}%" : "≤ {$threshold['green']}%")
+    ];
   }
 
   public function analyzeParagraphLength($content, $max_sentences = 4) {
-    // Split the content into paragraphs
-    $paragraphs       = preg_split('/\n+/', strip_tags($content), -1, PREG_SPLIT_NO_EMPTY);
-    $total_paragraphs = count($paragraphs);
-    $long_paragraphs  = array_filter($paragraphs, function ($paragraph) use ($max_sentences) {
-      $sentences = preg_split('/(?<=[.!?])\s+/', $paragraph, -1, PREG_SPLIT_NO_EMPTY);
-      return count($sentences) > $max_sentences;
-    });
+    // Regex untuk menangkap tag HTML <p>, <h1>-<h6>, dan lainnya
+    preg_match_all('/<(p|h[1-6]|[^>]+)>(.*?)<\/\1>/is', $content, $matches, PREG_SET_ORDER);
 
-    $long_paragraph_count = count($long_paragraphs);
+    $total_tags        = count($matches);
+    $long_tags         = [];
+    $tag_sentence_data = [];
+
+    foreach ($matches as $match) {
+      $tag_name   = $match[1]; // Nama tag
+      $tag_content = strip_tags($match[2]); // Konten tag tanpa tag HTML di dalamnya
+
+      // Hitung jumlah kalimat
+      $sentences = preg_split('/(?<=[.!?])\s+/', $tag_content, -1, PREG_SPLIT_NO_EMPTY);
+      $sentence_count = count($sentences);
+
+      // Tambahkan data tag dan jumlah kalimat
+      $tag_sentence_data[] = [
+        'tag'            => $tag_name,
+        'content'        => $tag_content,
+        'sentence_count' => $sentence_count,
+      ];
+
+      // Cek apakah tag memiliki jumlah kalimat lebih dari $max_sentences
+      if ($sentence_count > $max_sentences) {
+        $long_tags[] = [
+          'tag'            => $tag_name,
+          'content'        => $tag_content,
+          'sentence_count' => $sentence_count,
+        ];
+      }
+    }
+
+    $long_tag_count = count($long_tags);
+
     $result = [
-      'total_paragraphs'     => $total_paragraphs,
-      'long_paragraph_count' => $long_paragraph_count,
-      'status'               => '',
-      'message'              => '',
+      'total_tags'        => $total_tags,
+      'long_tag_count'    => $long_tag_count,
+      // 'tag_sentence_data' => $tag_sentence_data,   // Semua data tag
+      // 'long_tags'         => $long_tags,           // Hanya tag yang panjang
+      'status'            => '',
+      'message'           => '',
     ];
 
-    if ($long_paragraph_count > 0) {
-      $result['status'] = 'warning';
-      $result['message'] = 'Beberapa paragraf terlalu panjang. Usahakan agar setiap paragraf tidak lebih dari ' . $max_sentences . ' kalimat.';
+    if ($long_tag_count > 0) {
+      $result['status']    = 'warning';
+      $result['message']   = 'Beberapa paragraf terlalu panjang. Usahakan agar setiap paragraf tidak lebih dari ' . $max_sentences . ' kalimat.';
     } else {
-      $result['status'] = 'success';
-      $result['message'] = 'Tidak ada paragraf yang terlalu panjang. Kerja bagus!';
+      $result['status']    = 'success';
+      $result['message']   = 'Tidak ada paragraf yang terlalu panjang. Kerja bagus!';
     }
 
     return $result;
@@ -1341,50 +1411,287 @@ class Lib_ArticleSEO
   }
 
   public function analyzePassiveVoice($content) {
-    $content = strip_tags($content);
-    // List of common passive voice indicators in Indonesian
-    $passiveIndicators = [
-      '/\bdi\w+/i',  // Words starting with "di-"
-      '/\bter\w+/i', // Words starting with "ter-"
-      '/\bdapat\b/i', // The word "dapat"
-      '/\bakan\b/i',  // The word "akan"
-      '/\bpernah\b/i' // The word "pernah"
+    // Daftar kata kerja pasif
+    $passiveMarkers = ['diberi', 'dilakukan', 'dikatakan', 'ditulis', 'dibuat', 'diberikan', 'diperoleh', 'didapat', 'dipilih', 'digunakan', 'diambil', 'dijelaskan', 'dilihat', 'dipercaya', 'dikirim', 'ditemukan', 'dilaksanakan'];
+
+    $nonPassiveWords = [
+      "diskontinuitas",
+      "diskualifikasi",
+      "diskriminatif",
+      "diskriminator",
+      "digitalisasi",
+      "disinformasi",
+      "disintegrasi",
+      "diskriminasi",
+      "disorientasi",
+      "distabilitas",
+      "diktatorial",
+      "disinfektan",
+      "disinsentif",
+      "diskrepansi",
+      "distributor",
+      "diagnostik",
+      "dialketika",
+      "diktatoris",
+      "dinosaurus",
+      "diplomatik",
+      "diplomatis",
+      "direktorat",
+      "dirgantara",
+      "disimilasi",
+      "diskontinu",
+      "diskulpasi",
+      "disparitas",
+      "dispensasi",
+      "distilator",
+      "distingtif",
+      "distribusi",
+      "diversitas",
+      "diafragma",
+      "diagnosis",
+      "diakritik",
+      "diakronis",
+      "dialektal",
+      "dialektik",
+      "dialektis",
+      "digenesis",
+      "digitalis",
+      "dilematik",
+      "diminutif",
+      "dinamisme",
+      "dingklang",
+      "diplomasi",
+      "dirgahayu",
+      "disertasi",
+      "disfungsi",
+      "diskredit",
+      "diskursif",
+      "disleksia",
+      "dislokasi",
+      "dismutasi",
+      "disonansi",
+      "disosiasi",
+      "dispenser",
+      "disposisi",
+      "distilasi",
+      "distingsi",
+      "divestasi",
+      "diabeter",
+      "diagonal",
+      "dialisis",
+      "diameter",
+      "diaspora",
+      "difraksi",
+      "digestif",
+      "diglosia",
+      "dikotomi",
+      "diktator",
+      "dilatasi",
+      "dimorfik",
+      "dinamika",
+      "dioksida",
+      "diopsida",
+      "diplomat",
+      "direktur",
+      "disentri",
+      "disensus",
+      "disiplin",
+      "diskotek",
+      "diskresi",
+      "dispersi",
+      "disrupsi",
+      "distansi",
+      "distorsi",
+      "diagram",
+      "difabel",
+      "digdaya",
+      "digital",
+      "digresi",
+      "diletan",
+      "dimensi",
+      "dinamik",
+      "dinamis",
+      "dinamit",
+      "dinasti",
+      "dioksin",
+      "diorama",
+      "diploma",
+      "diptera",
+      "direksi",
+      "dirigen",
+      "disagio",
+      "disiden",
+      "disjoki",
+      "diskoid",
+      "diskusi",
+      "disuasi",
+      "dividen",
+      "diadem",
+      "diakon",
+      "dialek",
+      "dialog",
+      "diaper",
+      "diayah",
+      "diesel",
+      "dilasi",
+      "dinamo",
+      "diniah",
+      "diorit",
+      "diare",
+      "diode",
+      "didih",
+      "didik",
+      "didis",
+      "digit",
+      "dikau",
+      "dikir",
+      "diksi",
+      "dikte",
+      "dinas",
+      "dipan",
+      "dirah",
+      "direk",
+      "disko",
+      "dinda",
+      "difusi",
+      "dilema",
+      "dingin",
+      "diniah",
+      "diorit",
+      "dirham",
+      "disket",
+      "diskon",
+      "divisi",
+      "diftong",
+      "difteri",
+      "dinding",
+      "dingkis",
+      "dingkit",
+      "dioksin",
+      "diorama",
+      "diploma",
+      "dirigen",
+      "disiden",
+      "displin",
+      "disjoki",
+      "diskusi",
+      "distrik",
+      "dividen",
+      "digestif",
+      "diglosia",
+      "dikotomi",
+      "dingklik",
+      "dioksida",
+      "diplomat",
+      "direktur",
+      "disentri",
+      "diskresi",
+      "disorder",
+      "dispersi",
+      "distansi",
+      "disrupsi",
+      "divergen",
+      "dingklang",
+      "diplomasi",
+      "dirgahayu",
+      "disertasi",
+      "disfungsi",
+      "disilabik",
+      "diskredit",
+      "disleksia",
+      "dislokasi",
+      "disosiasi",
+      "dispenser",
+      "disposisi",
+      "distilasi",
+      "dinosaurus",
+      "diplomatik",
+      "diplomatis",
+      "dirgantara",
+      "disimilasi",
+      "diskontinu",
+      "disparitas",
+      "distilator",
+      "distribusi",
+      "divergensi",
+      "diversitas",
+      "disabilitas",
+      "disinfektan",
+      "diskrepansi",
+      "disintegrasi",
+      "diskriminasi",
+      "diskriminatif",
+      "diskontinuitas",
+      "diskualifikasi",
     ];
 
-    // Split text into sentences
-    $sentences = preg_split('/(?<=[.!?])\s+/', $content, -1, PREG_SPLIT_NO_EMPTY);
+    // Pisahkan teks menjadi kalimat berdasarkan tanda baca
+    $sentences = preg_split('/(?<=[.?!])\s+/', strip_tags($content), -1, PREG_SPLIT_NO_EMPTY);
 
+    $totalSentences = count($sentences);
     $passiveCount = 0;
 
     foreach ($sentences as $sentence) {
-      foreach ($passiveIndicators as $pattern) {
-        if (preg_match($pattern, $sentence)) {
-          $passiveCount++;
-          break; // No need to check other patterns for this sentence
+      $isPassive = false;
+
+      foreach ($passiveMarkers as $marker) {
+        if (stripos($sentence, $marker) !== false) {
+          // Cek apakah kata adalah bagian dari daftar kata non-pasif
+          $words = explode(' ',
+            strtolower($sentence)
+          );
+          $containsNonPassive = false;
+          foreach ($words as $word) {
+            if (in_array($word, $nonPassiveWords)) {
+              $containsNonPassive = true;
+              break;
+            }
+          }
+          if (!$containsNonPassive) {
+            $isPassive = true;
+            break;
+          }
         }
+      }
+      if ($isPassive) {
+        $passiveCount++;
       }
     }
 
-    $totalSentences = count($sentences);
-    $passivePercentage = $totalSentences > 0 ? ($passiveCount / $totalSentences) * 100 : 0;
-
-    $result = [
-      'total_sentences'    => $totalSentences,
-      'passive_count'      => $passiveCount,
-      'passive_percentage' => round($passivePercentage, 2),
-      'status'             => '',
-      'message'            => ''
-    ];
-
-    // Set status and message based on the analysis
-    if ($passivePercentage > 50) {
-      $result['status']  = 'danger';
-      $result['message'] = 'Sebagian besar kalimat menggunakan suara pasif. Pertimbangkan menggunakan suara aktif lebih banyak.';
-    } else {
-      $result['status']  = 'success';
-      $result['message'] = 'Penggunaan suara pasif cukup seimbang. Bagus!';
+    // Cegah pembagian oleh nol
+    if ($totalSentences === 0) {
+      return [
+        'status'  => 'Tidak Ada Konten',
+        'score'   => 0,
+        'message' => 'Teks tidak mengandung kalimat yang dapat dianalisis.',
+      ];
     }
 
-    return $result;
+    // Hitung persentase kalimat pasif
+    $percentage = round(($passiveCount / $totalSentences) * 100, 0);
+
+    // Tentukan skor dan pesan
+    if ($percentage <= 10) {
+      $status  = 'success';
+      $score   = 9;
+      $message = 'Penggunaan kalimat aktif sudah cukup baik. Lanjutkan!';
+    } elseif ($percentage > 10 && $percentage <= 15) {
+      $status  = 'warning';
+      $score   = 6;
+      $message = "{$percentage}% dari kalimat adalah pasif, coba gunakan lebih banyak kalimat aktif.";
+    } else {
+      $status  = 'danger';
+      $score   = 3;
+      $message = "{$percentage}% dari kalimat adalah pasif, yang melebihi batas yang direkomendasikan. Usahakan mengganti dengan kalimat aktif.";
+    }
+
+    return [
+      'status'          => $status,
+      'score'           => $score,
+      'message'         => $message,
+      'passive_count'   => $passiveCount,
+      'total_sentences' => $totalSentences,
+      'percentage'      => $percentage,
+    ];
   }
 }
