@@ -380,25 +380,26 @@ class Lib_ArticleSEO
   }
 
   public function analyzeImageAltTags($content, $keyphrase) {
-    // Extract all <img> tags from the content
-    preg_match_all('/<img[^>]+>/i', $content, $imageTags);
-    $images = $imageTags[0];
+    // Parse HTML content safely
+    $doc = new DOMDocument();
+    libxml_use_internal_errors(true);
+    $doc->loadHTML($content);
+    libxml_clear_errors();
+
+    $images = $doc->getElementsByTagName('img');
 
     // Break keyphrase into words
     $keyphrase_words = array_filter(explode(' ', strtolower($keyphrase)));
 
-    $total_images          = count($images);
-    $images_with_alt       = 0;
+    $total_images = $images->length;
+    $images_with_alt = 0;
     $images_with_keyphrase = 0;
 
     foreach ($images as $image) {
-      // Extract the alt attribute
-      preg_match('/alt="([^"]*)"/i', $image, $altMatch);
-      $altText = isset($altMatch[1]) ? strtolower($altMatch[1]) : '';
+      $altText = strtolower($image->getAttribute('alt'));
 
       if (!empty($altText)) {
         $images_with_alt++;
-        // Count the number of keyphrase words in the alt text
         $keyphrase_word_count = 0;
         foreach ($keyphrase_words as $word) {
           if (stripos($altText, $word) !== false) {
@@ -406,7 +407,6 @@ class Lib_ArticleSEO
           }
         }
 
-        // Check if at least half of the keyphrase words are present in the alt text
         if ($keyphrase_word_count >= ceil(count($keyphrase_words) / 2)) {
           $images_with_keyphrase++;
         }
@@ -423,17 +423,17 @@ class Lib_ArticleSEO
     ];
 
     if ($total_images === 0) {
-      $result['status']  = 'danger';
-      $result['message'] = 'Tidak ada gambar pada halaman ini. Tambahkan gambar yang relevan untuk meningkatkan SEO.';
+        $result['status']  = 'danger';
+        $result['message'] = 'Tidak ada gambar pada halaman ini. Tambahkan gambar yang relevan untuk meningkatkan SEO.';
     } elseif ($images_with_keyphrase >= ceil($total_images / 2)) {
-      $result['status']  = 'success';
-      $result['message'] = "Gambar di halaman ini memiliki alt attribute dengan setidaknya setengah kata dari keyphrase Anda. Kerja bagus!";
+        $result['status']  = 'success';
+        $result['message'] = "Gambar di halaman ini memiliki alt attribute dengan setidaknya setengah kata dari keyphrase Anda. Kerja bagus!";
     } elseif ($images_with_keyphrase > 0) {
-      $result['status']  = 'warning';
-      $result['message'] = "Beberapa gambar memiliki alt attribute yang mengandung keyphrase Anda. Pertimbangkan menambahkan alt attribute pada lebih banyak gambar.";
+        $result['status']  = 'warning';
+        $result['message'] = "Beberapa gambar memiliki alt attribute yang mengandung keyphrase Anda. Pertimbangkan menambahkan alt attribute pada lebih banyak gambar.";
     } else {
-      $result['status']  = 'danger';
-      $result['message'] = "Tidak ada gambar di halaman ini yang memiliki alt attribute dengan keyphrase Anda. Perbaiki untuk meningkatkan SEO.";
+        $result['status']  = 'danger';
+        $result['message'] = "Tidak ada gambar di halaman ini yang memiliki alt attribute dengan keyphrase Anda. Perbaiki untuk meningkatkan SEO.";
     }
 
     return $result;
